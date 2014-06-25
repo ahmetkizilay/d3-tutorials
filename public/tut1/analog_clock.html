@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Analog Clock</title>
+        <style>
+@import url(http://fonts.googleapis.com/css?family=PT+Sans);
+
+body {
+    background-color: #ddd;
+    font-family: 'PT Sans', sans-serif;
+}
+
+svg {
+    border: 1px solid black;
+    background-color: white;
+}
+
+circle {
+    fill: #999999;
+    fill-opacity: 0.8;
+    stroke: #4d4d4d;
+}
+
+.center-text {
+    alignment-baseline: middle;
+    text-anchor: middle;
+    font: 18px;
+    font-weight: bold;
+    fill: #4d4d4d;
+}
+
+.second {
+    fill: #b2182b;
+}
+
+.minute {
+    fill: #ef8a62;
+}
+
+.hour {
+    fill: #fddbc7;
+}
+
+.knob {
+    fill: black;
+    fill-opacity: 0.9;
+}
+        </style>
+        <script src="../libs/d3.v3.min.js"></script>
+    </head>
+    <body>
+        <script>
+var width = 400,
+    height = 400,
+    halfWidth = width * 0.5,
+    halfHeight = height * 0.5;
+
+var circleCount = 12;
+var bigRadius = 160;
+var radius = 20;
+var angularIncrement = 2.0 * Math.PI / circleCount;
+
+var svg = d3.select('body')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+// let's draw 12 circles around a circle
+for(var i = 0; i < circleCount; i += 1) {
+    var center_x = halfWidth + bigRadius * Math.cos((i * angularIncrement) - (Math.PI * 0.5));
+    var center_y = halfHeight + bigRadius * Math.sin((i * angularIncrement) - (Math.PI * 0.5));
+
+    var group = svg.append("g")
+        .attr("transform", "translate(" + center_x + ", " + center_y + ")");
+
+    var circle = group.append("circle")
+        .attr("r", radius);
+
+    var text = group.append("text")
+        .attr("class", "center-text")
+        .text(i == 0 ? 12 : i);
+}
+
+var hourHand = svg.append("g")
+    .attr("transform", "translate(" + halfWidth + ", " + halfHeight + ")")
+    .append("path")
+    .attr("d","M 0 -80 L 3 0 L -3 0 L 0 -80")
+    .attr("transform", "rotate(" + 0 + ")")
+    .attr("class", "hour");
+
+var minuteHand = svg.append("g")
+    .attr("transform", "translate(" + halfWidth + ", " + halfHeight + ")")
+    .append("path")
+    .attr("d","M 0 -100 L 3 0 L -3 0 L 0 -100")
+    .attr("class", "minute");
+
+var secondHand = svg.append("g")
+    .attr("transform", "translate(" + halfWidth + ", " + halfHeight + ")")
+    .append("path")
+    .attr("d","M 0 -110 L 3 0 L -3 0 L 0 -110")
+    .attr("class", "second");
+
+svg.append("g")
+    .attr("transform", "translate(" + halfWidth + ", " + halfHeight + ")")
+    .append("circle")
+    .attr("r", 4)
+    .attr("class", "knob");
+
+var tempMinute = -1;
+var updateClock = function () {
+    var currentTime = new Date();
+    var secondsRotationAngle = currentTime.getSeconds() * 6;
+    // updating the second handle
+    secondHand.transition()
+        .duration(1000)
+        .attr("transform", "rotate(" + secondsRotationAngle + ")");
+
+    var currentMinute = currentTime.getMinutes();
+    if(currentMinute !== tempMinute) {
+        
+        var minuteRotationAngle = currentMinute * 6;
+        minuteHand.transition()
+            .duration(500)
+            .attr("transform", "rotate(" + minuteRotationAngle + ")");
+
+        var currentHour = currentTime.getHours();
+        var hourRotationAngle = ((currentHour % 12) * 30) + Math.floor(currentMinute * 0.5);
+
+        hourHand.transition()
+            .duration(100)
+            .attr("transform", "rotate(" + hourRotationAngle + ")");
+
+        tempMinute = currentMinute;
+    }
+};
+
+updateClock();
+setInterval(updateClock, 1000);
+
+        </script>
+    </body>
+</html>

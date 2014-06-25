@@ -1,0 +1,38 @@
+@import url(http://fonts.googleapis.com/css?family=PT+Sans);
+
+body {
+    background-color: #ededed;
+    font-family: 'PT Sans', sans-serif;
+}
+
+iframe {
+    display: block;
+    border: 1px #ddd solid;
+    margin-left: 50px;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+a {
+    text-decoration: none;
+}
+
+iframe+a {
+    font-size: 12px;
+    margin-left: 50px;
+}
+
+p {
+    margin: 0;
+    padding: 0;
+    margin-top: 10px;
+}
+
+pre {
+    margin: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin-left: 100px;
+}

@@ -1,0 +1,9 @@
+{
+    "name": "d3-tutorials",
+    "description": "teaching myself d3 with a series of small projects",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "express": "3.x"
+    }
+}
