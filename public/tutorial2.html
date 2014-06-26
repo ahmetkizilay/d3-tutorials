@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Simple Game Tutorial</title>
+        <link rel="stylesheet" href="css/github.css">
+        <link rel="stylesheet" href="css/main.css">
+        <style>
+button {
+    margin-left: 10px;
+}
+        </style>
+
+        <script src="libs/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Building an Interactive Game</h2>
+
+            <p>In this tutorial, I would like to explore how to interact with svg through d3, and listen to certain events like such as transition end. So, I imagine a simple game in which certain circles fall from the sky and the aim is to destroy them before they reach the ground.</p>
+            <p>I would like to start with a simple circle that falls from the sky</p>
+
+            <iframe src="tut2/single_circle.html" id="single_circle" width="770" height="420" scrolling="no"></iframe>
+            <a href="tut2/single_circle.html">View single_circle.html</a>
+            <button onclick="reloadFrame('single_circle');">reload frame</button>
+
+            <p>I need to use the <code>transition()</code> method to animate objects. I can set the duration, the curve (ease) of the animation, as well as the attribute or the style of the element I want to animate. In the code above, I am simply animating the circle by changing the cy attribute over 2 seconds.</p>
+            <pre>
+                <code class="javascript">
+var circleRadius = 10;
+var circle = svg.append("circle")
+    .attr("cx", Math.random() * width - (2*circleRadius))
+    .attr("cy", circleRadius)
+    .attr("r", circleRadius)
+    .transition()
+    .ease('linear')
+    .duration(2000)
+    .attrTween("cy", function (d, i, a) {
+        return d3.interpolate(a, height - circleRadius);
+    });
+                </code>
+            </pre>
+
+            <p>To create a more dramatic effect, I would like to explode the circle when it hits the floor. So, I need to "chain" transitions, so that a new transition starts when the previous transition ends. In the code below, the first transition is the fall, which ends when the circle touches the ground. Then, I create a new transition which modifies two different values at once, radius and the fill-opacity. Finally, once the second transition is completed, I call <code>remove()</code> method to remove the circle from the view.</p>
+            <pre>
+                <code class="javascript">
+    svg.append("circle")
+        .attr("cx", circleRadius + (Math.random() * (width - circleRadius)))
+        .attr("cy", circleRadius)
+        .attr("r", circleRadius)
+        .transition()
+        .duration(2000)
+        .ease('linear')
+        .attrTween("cy", function (d, i, a) {
+            return d3.interpolate(a, height - circleRadius);
+        })
+        .transition()
+        .duration(100)
+        .attrTween("r", function (d, i, a) {
+            return d3.interpolate(a, 200);
+        })
+        .styleTween("fill-opacity", function (d, i, a) {
+            return d3.interpolate(a, 0.0);
+        })
+        .remove();
+                </code>
+            </pre>
+            <iframe src="tut2/multiple_circles.html" id="multiple_circles" width="770" height="420" scrolling="no"></iframe>
+            <a href="tut2/multiple_circles.html">View multiple_circles.html</a>
+            <button onclick="reloadFrame('multiple_circles');">reload frame</button>
+
+            <p>Now, I would like to pop these circles by clicking on them. So, I add click event to the circle element using <code class="javascript"> on('click', function () {}); </code>. Once the circle receives the click event, I need to stop the current transition (falling) and add start a new transition for popping. Within the click event function, I select <code type="javascript">this</code> and interrupt the current transition. I also need to disable the next explosion transition and I do that by setting the transition duration to 0. Once the usual transitions are gone, I can add the transition to animate the pop.</p>
+
+            <pre>
+                <code type="javascript">
+svg.append("circle")
+    .attr("cx", circleRadius + (Math.random() * (width - circleRadius)))
+    .attr("cy", circleRadius)
+    .attr("r", circleRadius)
+    .on('click', function () {
+        d3.select(this).interrupt().transition().duration(0);
+        d3.select(this)
+            .style("fill", "#ffd3d3")
+            .transition()
+            .duration(100)
+            .attrTween("r", function (d, i, a) {
+                return d3.interpolate(a, 0);
+            })
+            .styleTween("fill-opacity", function (d, i, a) {
+                return d3.interpolate(a, 0.0);
+            })
+    })
+    .transition()
+    .duration(2000)
+    .ease('linear')
+    .attrTween("cy", function (d, i, a) {
+        return d3.interpolate(a, height - circleRadius);
+    })
+    .transition()
+    .duration(100)
+    .attrTween("r", function (d, i, a) {
+        return d3.interpolate(a, 200);
+    })
+    .styleTween("fill-opacity", function (d, i, a) {
+        return d3.interpolate(a, 0.0);
+    })
+    .remove();
+                </code>
+            </pre>
+            <iframe src="tut2/click_circles.html" id="click_circles" width="770" height="420" scrolling="no"></iframe>
+            <a href="tut2/click_circles.html">View click_circles.html</a>
+            <button onclick="reloadFrame('click_circles');">reload frame</button>
+
+            <p>Finally, I would like to add a scoreboard that shows me how many circles I popped and how many I missed. So, I add two text elements to the bottom right corner whose text values are incremented when the circle hits the floor or is popped. When the game ends, these two text nodes animate to the center of the container.</p>
+
+            <p>Below is the animation code for the hit score text. Miss score is pretty muct the same except for the final x value.</p>
+            <pre>
+                <code class="javascript">
+hitScore.transition()
+    .delay(2000)
+    .duration(2000)
+    .styleTween("font-size", function (d, i, a) {
+        return d3.interpolate(a, "50px");
+    })
+    .attrTween("x", function (d, i, a) {
+        return d3.interpolate(a, width * 0.5 - 60);
+    })
+    .attrTween("y", function (d, i, a) {
+        return d3.interpolate(a, height * 0.5 - 25);
+    });                    
+                </code>
+            </pre>
+            <iframe src="tut2/the_game.html" id="the_game" width="770" height="420" scrolling="no"></iframe>
+            <a href="tut2/the_game.html">View the_game.html</a>
+            <button onclick="reloadFrame('the_game');">reload frame</button>
+
+            <p>Thanks for reading. I hope this was useful to you in some way.</p>
+        </div>
+    <script>
+function reloadFrame(id) {
+    document.getElementById(id).contentWindow.location.reload();
+}
+    </script>
+</body>
+</html>

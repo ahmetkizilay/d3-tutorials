@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>The Game</title>
+        <style>
+@import url(http://fonts.googleapis.com/css?family=PT+Sans);
+
+body {
+    background-color: #ddd;
+    font-family: 'PT Sans', sans-serif;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+svg {
+    border: 1px solid black;
+    background-color: white;
+}
+
+circle {
+    fill: #999999;
+    fill-opacity: 0.6;
+    stroke: #4d4d4d;
+}
+
+circle:hover {
+    fill-opacity: 1.0;
+}
+
+</style>
+        <script src="../libs/d3.v3.min.js"></script>
+    </head>
+    <body>
+        <script>
+var width = 750,
+    height = 400;
+
+var svg = d3.select('body')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+var container = svg.append('g')
+    .attr('width', width)
+    .attr('height', height);
+
+var circleRadius = 30;
+var max = 20, i = 0;
+var fallDuration = 2000;
+
+var theEnd = function () {
+
+    hitScore.transition()
+        .delay(fallDuration)
+        .duration(2000)
+        .styleTween("font-size", function (d, i, a) {
+            return d3.interpolate(a, "50px");
+        })
+        .attrTween("x", function (d, i, a) {
+            return d3.interpolate(a, width * 0.5 - 60);
+        })
+        .attrTween("y", function (d, i, a) {
+            return d3.interpolate(a, height * 0.5 - 25);
+        });
+
+    missScore.transition()
+        .delay(fallDuration)
+        .duration(2000)
+        .styleTween("font-size", function (d, i, a) {
+            return d3.interpolate(a, "50px");
+        })
+        .attrTween("x", function (d, i, a) {
+            return d3.interpolate(a, width * 0.5 + 10);
+        })
+        .attrTween("y", function (d, i, a) {
+            return d3.interpolate(a, height * 0.5 - 25);
+        });
+};
+
+var createCircles = function() {
+
+    if(i === max) {
+        theEnd();
+        return;
+    }
+
+    var me = container.append("circle")
+        .attr("cx", circleRadius + (Math.random() * (width - (2 * circleRadius))))
+        .attr("cy", circleRadius)
+        .attr("r", circleRadius)
+        .on('click', function () {
+            var me = d3.select(this);
+            me.interrupt().transition().duration(0);
+
+            me.style("stroke", "white")
+                .style("fill", "#ffd3d3")
+                .transition()
+                .duration(100)
+                .attrTween("r", function (d, i, a) {
+                    return d3.interpolate(a, 0);
+                })
+                .styleTween("fill-opacity", function (d, i, a) {
+                    return d3.interpolate(1.0, 0.0);
+                })
+                .each("end", function () {
+                    me.remove();
+                });
+
+                hitScore.text(+hitScore.text() + 1);
+        });
+
+    me.transition()
+        .duration(fallDuration)
+        .ease('linear')
+        .attrTween("cy", function (d, i, a) {
+            return d3.interpolate(a, height - circleRadius);
+        })
+        .transition()
+        .duration(100)
+        .attrTween("r", function (d, i, a) {
+            return d3.interpolate(a, 200);
+        })
+        .styleTween("fill-opacity", function (d, i, a) {
+            return d3.interpolate(a, 0.0);
+        })
+        .each("end", function() {
+            me.remove();
+            missScore.text(+missScore.text() + 1);
+        });
+
+    i = i + 1;
+
+    setTimeout(createCircles, 500);
+};
+
+var hitScore = svg.append('text')
+    .attr("x", width - 80)
+    .attr("y", height - 10)
+    .style("fill", "#7be77b")
+    .text(0);
+
+var missScore = svg.append('text')
+    .attr("x", width - 40)
+    .attr("y", height - 10)
+    .style("fill", "#e94636")
+    .text(0);
+
+createCircles();
+
+        </script>
+    </body>
+</html>
