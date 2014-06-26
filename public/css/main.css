@@ -32,6 +32,10 @@ pre {
     margin: 0;
 }
 
+li {
+    list-style: none;
+    padding-bottom: 5px;
+}
 .container {
     max-width: 800px;
     margin-left: 100px;
