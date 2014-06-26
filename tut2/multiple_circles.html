@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Multiple Circles</title>
+        <style>
+body {
+    background-color: #ddd;
+}
+
+svg {
+    border: 1px solid black;
+    background-color: white;
+}
+
+circle {
+    fill: #999999;
+    fill-opacity: 0.8;
+    stroke: #4d4d4d;
+}
+
+</style>
+        <script src="../libs/d3.v3.min.js"></script>
+    </head>
+    <body>
+        <script>
+var width = 750,
+    height = 400;
+
+var svg = d3.select('body')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+var circleRadius = 30;
+var max = 100, i = 0;
+
+var createCircles = function() {
+
+    if(i === max) {
+        return;
+    }
+
+    svg.append("circle")
+        .attr("cx", circleRadius + (Math.random() * (width - circleRadius)))
+        .attr("cy", circleRadius)
+        .attr("r", circleRadius)
+        .transition()
+        .duration(2000)
+        .ease('linear')
+        .attrTween("cy", function (d, i, a) {
+            return d3.interpolate(a, height - circleRadius);
+        })
+        .transition()
+        .duration(100)
+        .attrTween("r", function (d, i, a) {
+            return d3.interpolate(a, 200);
+        })
+        .styleTween("fill-opacity", function (d, i, a) {
+            return d3.interpolate(a, 0.0);
+        })
+        .remove();
+
+    i = i + 1;
+
+    setTimeout(createCircles, 500);
+
+};
+
+createCircles();
+
+        </script>
+    </body>
+</html>

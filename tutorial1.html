@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Analog Clock Tutorial</title>
+        <link rel="stylesheet" href="css/github.css">
+        <link rel="stylesheet" href="css/main.css">
+
+        <script src="libs/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Building an Analog Clock</h2>
+
+            <p>In this tutorial, I would like to create an analog clock. This clock will have the standard hour, minute and second hands, as well as the numbers showing the hours in the day. The clock hands will animate to show the current time at any second.
+            </p>
+
+            <p>Since this is the very first tutorial, I will quickly touch on the very basics to get started with d3.js.</p>
+
+            <p>To begin, we need a basic html template with the d3 library reference properly set up. You can either download or reference the latest minimized version of the library <a href="http://d3js.org/d3.v3.min.js">here</a>. d3 library hands you a useful abstraction to manipulate DOM and bind data and events to elements in the DOM. In this particular example, I will be creating a svg node, which will contain my visualisation. In order to see where the the svg container is located, I prefer setting a different background color for the body node and the svg node.
+            </p>
+            <iframe src="tut1/template.html" width="420" height="420" scrolling="no"></iframe>
+            <a href="tut1/template.html">View template.html</a>
+
+            <p>Above is what an empty template looks like. Note that there is already d3 action going on. d3 finds the body element and appends a svg element into the body. Of course, I could have begun with a svg element already present in the body of the html, and I could have selected the element by id, class or type, as in jQuery.</p>
+            <pre>
+                <code class="javascript">
+var width = 400,
+    height = 400;
+
+var svg = d3.select('body')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height);
+                </code>
+            </pre>
+            <p>Now I will add a simple circle at the center of the container, just to see what it looks like. </p>
+            <iframe src="tut1/single_circle.html" width="420" height="420" scrolling="no"></iframe>
+            <a href="tut1/single_circle.html">View single_circle.html</a>
+
+            <p>This is actually pretty straight forward. I just had to append a circle to the svg node, with the necessary attributes.</p>
+            <pre>
+                <code class="javascript">
+svg.append("circle")
+    .attr("cx", width / 2)
+    .attr("cy", height / 2)
+    .attr("r", 20);
+                </code>
+            </pre>
+
+            <p>Now I'd like to show some text at the center of this circle. In particular, I would like a circular number display, like on a typical clock. Here I need to change the structure here a little bit, because I cannot just add a text node to the circle element.</p>
+
+            <p>What I need to do is to create a <code>g</code> element, which lets me group different elements under its wings like a <code>div</code> element. My circle element and text element will be the children of this group element. Instead of transforming the circle element and the text element separately, like I did in the previous sample, I only need to apply the transform to the g element. The children elements will be tranformed along with the parent element.</p>
+            <iframe src="tut1/single_circle_with_text.html" width="420" height="420" scrolling="no"></iframe>
+            <a href="tut1/single_circle_with_text.html">View single_circle_with_text.html</a>
+
+            <pre>
+                <code class="javascript">
+var group = svg.append("g")
+    .attr("transform", "translate(" + halfWidth + ", " + halfHeight + ")");
+
+group.append("circle")
+    .attr("r", 20);
+
+group.append("text")
+    .text("A")
+    .attr("class", "center-text");
+                </code>
+            </pre>
+            
+            <p>Note that I added a class attribute to the text element. center-text class is defined in the style section of the html file with the corresponding rules to center the text. I won't get into much detail about the css. I assume readers will be comfortable with inspecting the css rules for any element in these examples.</p>
+
+            <p>Now I need twelve of these circle-text groups and they need to align along a circle inside the svg container, as they would in a clock.</p>
+
+            <iframe src="tut1/twelve_circles.html" width="420" height="420" scrolling="no"></iframe>
+            <a href="tut1/twelve_circles.html">View twelve_circles.html</a>
+
+            <p>There's really nothing special in here. I just need to do the math to calculate the translation coordinates for each group.</p>
+
+            <pre>
+                <code class="javascript">
+var circleCount = 12;
+var bigRadius = 160;
+var radius = 20;
+var angularIncrement = 2.0 * Math.PI / circleCount;
+
+for(var i = 0; i < circleCount; i += 1) {
+var center_x = halfWidth + bigRadius * Math.cos((i * angularIncrement) - (Math.PI * 0.5));
+var center_y = halfHeight + bigRadius * Math.sin((i * angularIncrement) - (Math.PI * 0.5));
+
+var group = svg.append("g")
+    .attr("transform", "translate(" + center_x + ", " + center_y + ")");
+
+var circle = group.append("circle")
+    .attr("r", radius);
+
+var text = group.append("text")
+    .attr("class", "center-text")
+    .text(i == 0 ? 12 : i);
+}
+                </code>
+            </pre>
+
+            <p>Now, I need to add the hands of the clock. I will start with the second hand. I would like to draw a simple triangle at the center of the container. This triangle should rotate at every second to point in the right direction. <code>path</code> element is used to draw shapes with its special syntax. I need to set the d attribute of the path element to draw my triangle. For my purposes, I can draw a simple triangle with four commands. <code>M 0 -110 L 3 0 L -3 0 L 0 -110</code> M means move-to and L means line-to. So, move to the coordinates (0, -110), draw a line to (-3, 0) and from that point draw another line to (-3, 0), so on. Some detailed information the syntax of path is found <a href="https://www.dashingd3js.com/svg-paths-and-d3js">here</a>. </p>
+
+            <pre>
+                <code class="javascript">
+var secondHand = svg.append("g")
+    .attr("transform", "translate(" + halfWidth + ", " + halfHeight + ")")
+    .append("path")
+    .attr("d","M 0 -110 L 3 0 L -3 0 L 0 -110")
+    .attr("class", "second");
+                </code>
+            </pre>
+
+            <p>Now, I need to update the rotation of the second hand at every second. Here I am using the <code>transition()</code> method to make the second hand smoothly slide from one rotation angle to another. <code>updateClock()</code> method checks the second value periodically and updates the rotation angle for the second hand.</p>
+
+            <pre>
+                <code class="javascript">
+var updateClock = function () {
+    var currentTime = new Date();
+    var secondsRotationAngle = currentTime.getSeconds() * 6;
+
+    secondHand.transition()
+        .duration(1000)
+        .attr("transform", "rotate(" + secondsRotationAngle + ")");
+};
+
+updateClock();
+setInterval(updateClock, 1000);
+                </code>
+            </pre>
+            <iframe src="tut1/second_hand.html" width="420" height="420" scrolling="no"></iframe>
+            <a href="tut1/second_hand.html">View second_hand.html</a>
+
+            <p>Similarly, I will add the minute and the hour hands. The last group below is a needle  that pins hands together.</p>
+
+            <pre>
+                <code class="javascript">
+var hourHand = svg.append("g")
+    .attr("transform", "translate(" + halfWidth + ", " + halfHeight + ")")
+    .append("path")
+    .attr("d","M 0 -80 L 3 0 L -3 0 L 0 -80")
+    .attr("transform", "rotate(" + 0 + ")")
+    .attr("class", "hour");
+
+var minuteHand = svg.append("g")
+    .attr("transform", "translate(" + halfWidth + ", " + halfHeight + ")")
+    .append("path")
+    .attr("d","M 0 -100 L 3 0 L -3 0 L 0 -100")
+    .attr("class", "minute");
+
+svg.append("g")
+    .attr("transform", "translate(" + halfWidth + ", " + halfHeight + ")")
+    .append("circle")
+    .attr("r", 6)
+    .attr("class", "knob");
+                </code>
+            </pre>
+            
+            <p>I also need to calculate the angles for the minute and the hour handle. In the modified version of the updateClock method, I animate the hour and minute handle only when the date shows a new minute value.<p>
+
+            <pre>
+                <code class="javascript">
+var tempMinute = -1;
+var updateClock = function () {
+    var currentTime = new Date();
+    var secondsRotationAngle = currentTime.getSeconds() * 6;
+
+    secondHand.transition()
+        .duration(1000)
+        .attr("transform", "rotate(" + secondsRotationAngle + ")");
+
+    var currentMinute = currentTime.getMinutes();
+    if(currentMinute !== tempMinute) {
+        
+        var minuteRotationAngle = currentMinute * 6;
+        minuteHand.transition()
+            .duration(500)
+            .attr("transform", "rotate(" + minuteRotationAngle + ")");
+
+        var currentHour = currentTime.getHours();
+        var hourRotationAngle = ((currentHour % 12) * 30) + Math.floor(currentMinute * 0.5);
+
+        hourHand.transition()
+            .duration(100)
+            .attr("transform", "rotate(" + hourRotationAngle + ")");
+
+        tempMinute = currentMinute;
+    }
+};
+
+updateClock();
+setInterval(updateClock, 1000);
+                </code>
+            </pre>
+
+            <p>That's pretty much it. Below is a final (read: functional) implementation of an analog clock.</p>
+            <iframe src="tut1/analog_clock.html" width="420" height="420" scrolling="no"></iframe>
+            <a href="tut1/analog_clock.html">View analog_clock.html</a>
+
+            <p>I hope this was useful to you in some way.</p>
+        </div>
+
+</body>
+</html>
