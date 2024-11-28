@@ -4,12 +4,10 @@
         path = require('path'),
         app = express();
 
-    app.configure(function() {
-        app.use(express.bodyParser());
-        app.use(express.methodOverride());
-        app.use(app.router);
-        app.use(express.static(path.join(application_root, "public")));
-    });
+    // Middleware setup
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+    app.use(express.static(path.join(application_root, "public")));
 
     app.listen(process.env.PORT || 2424);
 }).call(this);
